@@ -1,0 +1,155 @@
+name: Create Gloo Platform API plugin release
+on:
+  push:
+    tags:
+      - "release-v[0-9]+.[0-9]+.[0-9]+"
+      - "release-v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
+
+env:
+  GOLANG_VERSION: "1.19"
+
+jobs:
+  release-creation:
+    name: Automatic release creation triggered on ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    env:
+      # The full name of the tag as supplied by the GitHub event
+      # refs/tags/release-v0.0.0-rc1
+      TRIGGER_TAG: ${{ github.ref }}
+      # Only tag name
+      TRIGGER_TAG_NAME: ${{ github.ref_name }}
+      # Whether to create release
+      IS_DRY_RUN: false
+      # Whether a draft release should be created, instead of public one
+      IS_DRAFT_RELEASE: false
+      # Name of the GitHub user for Git config
+      GIT_USERNAME: bdlilley
+      # E-Mail of the GitHub user for Git config
+      GIT_EMAIL: ben@solo.io
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Golang
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Setup Git author information
+        run: |
+          set -ue
+          git config --global user.email "${GIT_EMAIL}"
+          git config --global user.name "${GIT_USERNAME}"
+
+      - name: Preparing env variables
+        run: |
+          set -xue
+          # Target version must match major.minor.patch and optional -rcX suffix
+          # where X must be a number.
+          # The release tag is the source tag, minus the release- prefix
+          RELEASE_TAG="${TRIGGER_TAG#*release-}"
+          # Whether this is a pre-release (indicated by -rc suffix)
+          IS_PRE_RELEASE=false
+          if echo "${RELEASE_TAG}" | grep -E -- '-rc[0-9]+$'; then
+            IS_PRE_RELEASE=true
+          fi
+          # Ensure that release do not yet exist
+          if [[ -n $(git tag -l | grep -E -- '^'${RELEASE_TAG}) ]]; then
+            echo "::error::Release tag ${RELEASE_TAG} already exists in repository. Refusing to continue."
+            exit 1
+          fi
+          # Make the variables available in follow-up steps
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          echo "IS_PRE_RELEASE=${IS_PRE_RELEASE}" >> $GITHUB_ENV
+
+      - name: Creating the release tag
+        run: |
+          set -ue
+          if [[ "$IS_DRY_RUN" == "true" ]]; then
+            echo "IS_DRY_RUN=${IS_DRY_RUN}"
+            exit 0
+          fi
+          echo "Creating release tag ${RELEASE_TAG}"
+          git tag ${RELEASE_TAG}
+          git push origin ${RELEASE_TAG}
+
+      - name: Deleting pushed tag
+        run: |
+          set -ue
+          echo "Deleting pushed tag ${TRIGGER_TAG_NAME}"
+          git tag -d ${TRIGGER_TAG_NAME}
+          git push -d origin ${TRIGGER_TAG_NAME}
+
+      - name: Release building
+        run: |
+          make release
+
+      - name: GitHub release place creation
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: create_release
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          release_name: ${{ env.RELEASE_TAG }}
+          draft: ${{ env.IS_DRAFT_RELEASE }}
+          prerelease: ${{ env.IS_PRE_RELEASE }}
+          body_path: RELEASE_NOTES.md
+
+      - name: Glooplatform-api-plugin-linux-amd64 binary uploading to release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/glooplatform-api-plugin-linux-amd64
+          asset_name: glooplatform-api-plugin-linux-amd64
+          asset_content_type: application/octet-stream
+        if: ${{ env.IS_DRY_RUN != 'true' }}
+
+      - name: Glooplatform-api-plugin-linux-arm64 binary uploading to release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/glooplatform-api-plugin-linux-arm64
+          asset_name: glooplatform-api-plugin-linux-arm64
+          asset_content_type: application/octet-stream
+        if: ${{ env.IS_DRY_RUN != 'true' }}
+
+      - name: Glooplatform-api-plugin-darwin-amd64 binary uploading to release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/glooplatform-api-plugin-darwin-amd64
+          asset_name: glooplatform-api-plugin-darwin-amd64
+          asset_content_type: application/octet-stream
+        if: ${{ env.IS_DRY_RUN != 'true' }}
+
+      - name: Glooplatform-api-plugin-darwin-arm64 binary uploading to release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/glooplatform-api-plugin-darwin-arm64
+          asset_name: glooplatform-api-plugin-darwin-arm64
+          asset_content_type: application/octet-stream
+        if: ${{ env.IS_DRY_RUN != 'true' }}
+
+      - name: Glooplatform-api-plugin-windows-amd64 binary uploading to release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/glooplatform-api-plugin-windows-amd64.exe
+          asset_name: glooplatform-api-plugin-windows-amd64.exe
+          asset_content_type: application/octet-stream
+        if: ${{ env.IS_DRY_RUN != 'true' }}
