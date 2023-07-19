@@ -101,4 +101,3 @@ RouteTable and route selection is specified in the plugin config. Either a Route
 - unit tests
   - update tests with mock gloo client using interfaces in [./pkg/gloo/client.go](./pkg/gloo/client.go)
   - add more tests
-- get https:// ref working for plugin download and update kustomize to not use a custom image
