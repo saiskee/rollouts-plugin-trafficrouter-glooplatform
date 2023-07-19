@@ -65,10 +65,10 @@ RouteTable and route selection is specified in the plugin config. Either a Route
 
 1. `kubectl apply -f ./examples/demo-api-initial-state && kubectl apply -f ./examples/0-rollout-initial`
 1. Observe the initial rollout; it should have fully deployed the demo api b/c it was the first revision of the Rollout
-1. `kubectl apply -f ./0-rollout-first-change`
+1. `kubectl apply -f ./examples/1-rollout-first-change`
 1. Observe the rollout canaried 10% of traffic to v2 and is now paused
 1. Perform the remaining rollout steps until fully promoted
-1. `kubectl apply -f ./0-rollout-second-change`
+1. `kubectl apply -f ./examples/2-rollout-second-change`
 1. Repeat 4 & 5
 
 ### TODO
