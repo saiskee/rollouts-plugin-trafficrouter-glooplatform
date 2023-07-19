@@ -12,7 +12,7 @@ An Argo Rollouts plugin for [Gloo Platform](https://www.solo.io/products/gloo-pl
 
 ### Quickstart
 
-Install Argo Rollouts w/ downloaded Gloo Platform plugin
+Install Argo Rollouts w/ downloaded Gloo Platform plugin (uses the vanilla `quay.io/argoproj/argo-rollouts:latest` image, which then downloads the Gloo Platform plugin on startup)
 
 ```bash
 kubectl create ns argo-rollouts
