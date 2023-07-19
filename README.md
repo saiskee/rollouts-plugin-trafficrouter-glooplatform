@@ -101,3 +101,4 @@ RouteTable and route selection is specified in the plugin config. Either a Route
 - unit tests
   - update tests with mock gloo client using interfaces in [./pkg/gloo/client.go](./pkg/gloo/client.go)
   - add more tests
+- replace demo api in examples folder w/ https://github.com/argoproj/rollouts-demo images (blue, green, red, etc.)
