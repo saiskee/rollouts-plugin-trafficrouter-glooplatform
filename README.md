@@ -8,7 +8,9 @@
 
 # Argo Rollout Gloo Platform API Plugin
 
-### Argo Rollouts Plugin Installation Requirements
+### Argo Rollouts Plugin Installation
+
+Requirements:
 
 1. Gloo Platform plugin the Argo Rollouts runtime container
 1. Register the plugin in the Argo Rollouts argo-rollouts-config ConfigMap
