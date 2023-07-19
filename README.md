@@ -16,7 +16,7 @@ Install Argo Rollouts w/ downloaded Gloo Platform plugin
 
 ```bash
 kubectl create ns argo-rollouts
-kubectl apply -k ./deploy -n argo-rollouts
+kubectl apply -k ./deploy
 ```
 
 Deploy the example initial state
