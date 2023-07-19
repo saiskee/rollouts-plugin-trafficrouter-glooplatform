@@ -8,44 +8,65 @@
 
 # Argo Rollout Gloo Platform API Plugin
 
-**required rbac in argo-rollouts cluster role**
+### Argo Rollouts Plugin Installation Requirements
+
+1. Gloo Platform plugin the Argo Rollouts runtime container
+1. Register the plugin in the Argo Rollouts argo-rollouts-config ConfigMap
+1. Argo Rollouts RBAC to modify Gloo APIs
+
+The plugin can be loaded into the controller runtime by building your own Argo Rollouts image, pulling it in an init container, or having the controller download it on startup. See [Traffic Router Plugins](https://argoproj.github.io/argo-rollouts/features/traffic-management/plugins/) for details.
+
+See [Kustomize patches](./deploy/kustomization.yaml) in this repo for Argo Rollouts configuration examples.
+
+### Usage
+
+Canary and stable services in the Rollout spec must refer to `forwardTo` destinations in [routes](https://docs.solo.io/gloo-mesh-enterprise/latest/troubleshooting/gloo/routes/) that exist in one or more Gloo Platform RouteTables.
+
+RouteTable and route selection is specified in the plugin config. Either a RouteTable label selector or a named RouteTable must be specified. RouteSelector is entirely optional; this is useful to limit matches to specific routes in a RouteTable if it contains any references to canary or stable services that you do not want to modify.
 
 ```yaml
-- apiGroups:
-  - networking.gloo.solo.io
-  resources:
-  - routetables
-  verbs:
-  - '*'
-```
-
-**conifgure rollouts configmap with plugin**
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  labels:
-  name: argo-rollouts-config
-data:
-  trafficRouterPlugins: |-
-    - name: "solo-io/glooplatformAPI"
-      location: "file://./plugin"
-```
-
-**how to reference plugin in a rollout**
-```yaml
+  strategy:
+    canary:
+      canaryService: canary
+      stableService: stable
       trafficRouting:
         plugins:
+          # the plugin name must match the name used in argo-rollouts-config ConfigMap
           solo-io/glooplatformAPI:
+            # select Gloo RouteTable(s); if both label and name selectors are used, the name selector
+            # takes precedence
             routeTableSelector:
+              # (optional) label selector
               labels:
                 app: demo
+              # filter by namespace
               namespace: gloo-mesh
+              # (optional) select a specific RouteTable by name
               # name: rt-name
-              # namespace: rt-namespace
+            # (optional) select specific route(s); useful to target specific routes in a RouteTable that has mutliple occurences of the canaryService or stableService 
             routeSelector:
+              # (optional) label selector
               labels:
                 route: demo-preview
+              # (optional) select a specific route by name
               # name: route-name
 ```
+
+### Examples
+
+1. `kubectl apply -f ./examples/demo-api-initial-state && kubectl apply -f ./examples/0-rollout-initial`
+1. Observe the initial rollout; it should have fully deployed the demo api b/c it was the first revision of the Rollout
+1. `kubectl apply -f ./0-rollout-first-change`
+1. Observe the rollout canaried 10% of traffic to v2 and is now paused
+1. Perform the remaining rollout steps until fully promoted
+1. `kubectl apply -f ./0-rollout-second-change`
+1. Repeat 4 & 5
+
+### TODO
+
+- implement [blue/green](./pkg/plugin/plugin_bluegreen.go)
+- implement `SetHeaderRoute` and `SetMirrorRoute` in [plugin.go](./pkg/plugin/plugin.go)
+- unit tests
+  - update tests with mock gloo client using interfaces in [./pkg/gloo/client.go](./pkg/gloo/client.go)
+  - add more tests
+- get https:// ref working for plugin download and update kustomize to not use a custom image
