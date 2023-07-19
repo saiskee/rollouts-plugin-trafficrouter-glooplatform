@@ -20,6 +20,13 @@ The plugin can be loaded into the controller runtime by building your own Argo R
 
 See [Kustomize patches](./deploy/kustomization.yaml) in this repo for Argo Rollouts configuration examples.
 
+Clean full install:
+
+```bash
+kubectl create ns argo-rollouts
+kubectl apply -k ./deploy -n argo-rollouts
+```
+
 ### Usage
 
 Canary and stable services in the Rollout spec must refer to `forwardTo` destinations in [routes](https://docs.solo.io/gloo-mesh-enterprise/latest/troubleshooting/gloo/routes/) that exist in one or more Gloo Platform RouteTables.

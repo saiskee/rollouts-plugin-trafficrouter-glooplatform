@@ -4,11 +4,6 @@ kind: Kustomization
 resources:
 - https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.5.1/manifests/install.yaml
 
-images:
-  - name: quay.io/argoproj/argo-rollouts
-    newName: kodacd/argo-rollouts
-    newTag: latest
-
 patchesJson6902:
   - target:
       kind: ClusterRole
@@ -35,4 +30,4 @@ patchesJson6902:
         value:
           trafficRouterPlugins: |
             - name: "solo-io/glooplatformAPI"
-              location: "file://./glooplatform-api-plugin"
+              location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooplatform/releases/download/v0.0.0-beta1/glooplatform-api-plugin-darwin-amd64"
