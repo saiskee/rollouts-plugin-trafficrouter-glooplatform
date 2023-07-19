@@ -2,8 +2,7 @@ name: Create Gloo Platform API plugin release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+.*"
-      
+    - "v*"
 env:
   GOLANG_VERSION: "1.19"
 
