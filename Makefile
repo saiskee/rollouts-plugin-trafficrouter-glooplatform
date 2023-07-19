@@ -12,3 +12,15 @@ release:
 .PHONY: glooplatform-api-plugin-build
 glooplatform-api-plugin-build:
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -v -o ${DIST_DIR}/${BIN_NAME} .
+
+.PHONY: dev
+dev:
+	kubectl create ns argo-rollouts || true
+	skaffold dev -n argo-rollouts 
+
+.PHONY: demo
+demo:
+	kubectl create ns argo-rollouts || true
+	kubectl apply -k ./deploy -n argo-rollouts
+	kubectl apply -f ./examples/demo-api-initial-state
+	kubectl apply -f ./examples/0-rollout-initial

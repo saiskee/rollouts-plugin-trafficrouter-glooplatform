@@ -1,0 +1,21 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: rollouts-plugin-trafficrouter-glooplatform
+build:
+  artifacts:
+    - image: kodacd/argo-rollouts
+      docker:
+        dockerfile: Dockerfile
+        cacheFrom:
+        - kodacd/argo-rollouts
+        buildArgs:
+          GOOS: linux
+          GOARCH: amd64
+  local:
+    push: true
+    useBuildkit: true
+manifests:
+  kustomize:
+    paths:
+      - deploy
