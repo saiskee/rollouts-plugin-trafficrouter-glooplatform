@@ -18,9 +18,13 @@ dev:
 	kubectl create ns argo-rollouts || true
 	skaffold dev -n argo-rollouts 
 
-.PHONY: demo
-demo:
+.PHONY: install-rollouts
+install-rollouts:
 	kubectl create ns argo-rollouts || true
 	kubectl apply -k ./deploy -n argo-rollouts
+
+.PHONY: demo
+demo:
+	make install-rollouts
 	kubectl apply -f ./examples/demo-api-initial-state
 	kubectl apply -f ./examples/0-rollout-initial
