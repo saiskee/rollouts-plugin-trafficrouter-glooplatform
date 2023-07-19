@@ -8,6 +8,32 @@
 
 # Argo Rollout Gloo Platform API Plugin
 
+An Argo Rollouts plugin for [Gloo Platform](https://www.solo.io/products/gloo-platform/).
+
+### Quickstart
+
+Install Argo Rollouts w/ downloaded Gloo Platform plugin
+
+```bash
+kubectl create ns argo-rollouts
+kubectl apply -k ./deploy -n argo-rollouts
+```
+
+Deploy the example initial state
+
+```bash
+kubectl apply -f ./examples/demo-api-initial-state
+kubectl apply -f ./examples/0-rollout-initial
+```
+
+Create a rollout revision and view in dashboard
+
+```bash
+kubectl apply -f ./examples/1-rollout-first-change
+kubectl argo rollouts dashboard &
+open http://localhost:3100/rollouts
+```
+
 ### Argo Rollouts Plugin Installation
 
 Requirements:
@@ -19,13 +45,6 @@ Requirements:
 The plugin can be loaded into the controller runtime by building your own Argo Rollouts image, pulling it in an init container, or having the controller download it on startup. See [Traffic Router Plugins](https://argoproj.github.io/argo-rollouts/features/traffic-management/plugins/) for details.
 
 See [Kustomize patches](./deploy/kustomization.yaml) in this repo for Argo Rollouts configuration examples.
-
-Clean full install:
-
-```bash
-kubectl create ns argo-rollouts
-kubectl apply -k ./deploy -n argo-rollouts
-```
 
 ### Usage
 
