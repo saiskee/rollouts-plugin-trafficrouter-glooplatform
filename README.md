@@ -19,20 +19,21 @@ kubectl create ns argo-rollouts
 kubectl apply -k ./deploy
 ```
 
-Deploy the example initial state
+Deploy the initial rollout state - 100% to `green`
 
 ```bash
-kubectl apply -f ./examples/demo-api-initial-state
-kubectl apply -f ./examples/0-rollout-initial
-```
-
-Create a rollout revision and view in dashboard
-
-```bash
-kubectl apply -f ./examples/1-rollout-first-change
+kubectl apply -f ./examples/0-rollout-initial-state-green
 kubectl argo rollouts dashboard &
 open http://localhost:3100/rollouts
 ```
+
+Add a rollout revision to perform a canary rollout to `blue`
+
+```bash
+kubectl apply -f ./examples/1-rollout-canary-blue
+```
+
+The rollout should progress to 10% `blue` and pause until manually promoted in the dashboard.
 
 ### Argo Rollouts Plugin Installation
 
@@ -79,17 +80,6 @@ RouteTable and route selection is specified in the plugin config. Either a Route
               # (optional) select a specific route by name
               # name: route-name
 ```
-
-### Examples
-
-1. `kubectl apply -f ./examples/demo-api-initial-state && kubectl apply -f ./examples/0-rollout-initial`
-1. Observe the initial rollout; it should have fully deployed the demo api b/c it was the first revision of the Rollout
-1. `kubectl apply -f ./examples/1-rollout-first-change`
-1. Observe the rollout canaried 10% of traffic to v2 and is now paused
-1. Perform the remaining rollout steps until fully promoted
-1. `kubectl apply -f ./examples/2-rollout-second-change`
-1. Repeat 4 & 5
-
 ### Supported Gloo Platform Versions
 
 * All Gloo Platform versions 2.0 and newer
