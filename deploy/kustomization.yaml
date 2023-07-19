@@ -30,4 +30,4 @@ patchesJson6902:
         value:
           trafficRouterPlugins: |
             - name: "solo-io/glooplatformAPI"
-              location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooplatform/releases/download/v0.0.0-beta1/glooplatform-api-plugin-darwin-amd64"
+              location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooplatform/releases/download/v0.0.0-beta1/glooplatform-api-plugin-linux-amd64"
