@@ -8,6 +8,8 @@
 
 # Argo Rollout Gloo Platform API Plugin
 
+<img align="right" src="img/logo.png">
+
 An Argo Rollouts plugin for [Gloo Platform](https://www.solo.io/products/gloo-platform/).
 
 ### Quickstart
