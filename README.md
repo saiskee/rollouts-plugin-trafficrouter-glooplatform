@@ -90,6 +90,10 @@ RouteTable and route selection is specified in the plugin config. Either a Route
 1. `kubectl apply -f ./examples/2-rollout-second-change`
 1. Repeat 4 & 5
 
+### Supported Gloo Platform Versions
+
+* All Gloo Platform versions 2.0 and newer
+
 ### TODO
 
 - implement [blue/green](./pkg/plugin/plugin_bluegreen.go)
