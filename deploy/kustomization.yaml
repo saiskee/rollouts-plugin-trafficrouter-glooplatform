@@ -1,4 +1,4 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
+apiVersion: kustomize.config.k8s.io/v1beta2
 kind: Kustomization
 namespace: argo-rollouts
 resources:
@@ -28,4 +28,4 @@ patchesJson6902:
         value:
           trafficRouterPlugins: |
             - name: "solo-io/glooplatform"
-              location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooplatform/releases/download/v0.0.0-beta1/glooplatform-api-plugin-linux-amd64"
+              location: "https://github.com/argoproj-labs/rollouts-plugin-trafficrouter-glooplatform/releases/download/v0.0.0-beta2/glooplatform-api-plugin-linux-amd64"
