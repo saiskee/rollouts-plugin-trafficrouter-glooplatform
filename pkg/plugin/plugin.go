@@ -19,7 +19,7 @@ import (
 const (
 	Type                       = "GlooPlatformAPI"
 	GlooPlatformAPIUpdateError = "GlooPlatformAPIUpdateError"
-	PluginName                 = "solo-io/glooplatformAPI"
+	PluginName                 = "solo-io/glooplatform"
 )
 
 type RpcPlugin struct {

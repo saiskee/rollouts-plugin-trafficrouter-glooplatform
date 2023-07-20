@@ -61,7 +61,7 @@ RouteTable and route selection is specified in the plugin config. Either a Route
       trafficRouting:
         plugins:
           # the plugin name must match the name used in argo-rollouts-config ConfigMap
-          solo-io/glooplatformAPI:
+          solo-io/glooplatform:
             # select Gloo RouteTable(s); if both label and name selectors are used, the name selector
             # takes precedence
             routeTableSelector:

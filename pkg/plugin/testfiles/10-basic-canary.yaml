@@ -30,7 +30,7 @@ rollout:
         stableService: stable
         trafficRouting:
           plugins:
-            solo-io/glooplatformAPI:
+            solo-io/glooplatform:
               routeTableSelector:
                 name: demo
                 namespace: gloo-mesh
