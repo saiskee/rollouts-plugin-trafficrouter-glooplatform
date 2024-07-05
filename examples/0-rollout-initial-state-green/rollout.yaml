@@ -25,7 +25,7 @@ spec:
             memory: 100Mi
   strategy:
     canary:
-      canaryService: canary
+      canaryService: canaryblah
       stableService: stable
       trafficRouting:
         plugins:
@@ -34,6 +34,10 @@ spec:
               labels:
                 app: demo
               namespace: gloo-mesh
+            stableSubsetSelector:
+              version: v1
+            canarySubsetSelector:
+              version: v2
       steps:
       - setWeight: 10
       - pause: {}

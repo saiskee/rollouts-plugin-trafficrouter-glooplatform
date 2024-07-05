@@ -33,6 +33,8 @@ type RpcPlugin struct {
 type GlooPlatformAPITrafficRouting struct {
 	RouteTableSelector *DumbObjectSelector `json:"routeTableSelector" protobuf:"bytes,1,name=routeTableSelector"`
 	RouteSelector      *DumbRouteSelector  `json:"routeSelector" protobuf:"bytes,2,name=routeSelector"`
+	CanarySubsetSelector map[string]string `json:"canarySubsetSelector" protobuf:"bytes,3,name=canarySubsetSelector"`
+	StableSubsetSelector map[string]string `json:"stableSubsetSelector" protobuf:"bytes,4,name=stableSubsetSelector"`
 }
 
 type DumbObjectSelector struct {
@@ -108,7 +110,8 @@ func (r *RpcPlugin) UpdateHash(rollout *v1alpha1.Rollout, canaryHash, stableHash
 
 func (r *RpcPlugin) SetWeight(rollout *v1alpha1.Rollout, desiredWeight int32, additionalDestinations []v1alpha1.WeightDestination) pluginTypes.RpcError {
 	ctx := context.TODO()
-	glooPluginConfig, err := getPluginConfig(rollout)
+	//todo - validation on unmarshal config
+ 	glooPluginConfig, err := getPluginConfig(rollout)
 	if err != nil {
 		return pluginTypes.RpcError{
 			ErrorString: err.Error(),
@@ -164,6 +167,11 @@ func getPluginConfig(rollout *v1alpha1.Rollout) (*GlooPlatformAPITrafficRouting,
 	return &glooplatformConfig, nil
 }
 
+// getRouteTables matches the routeTables based on the route table selectors in the plugin config from the Rollout CR.
+// If a RouteTableSelector is provided, it will match the RouteTable based on the provided namespace and name.
+// If a namespace is not provided, it will default to the Rollout's namespace.
+// If a name is not provided, it will match based on labels in the provided namespace.
+// Label matchers can match multiple route tables, and the plugin will attempt to match the routes within each route table.
 func (r *RpcPlugin) getRouteTables(ctx context.Context, rollout *v1alpha1.Rollout, glooPluginConfig *GlooPlatformAPITrafficRouting) ([]*GlooMatchedRouteTable, error) {
 	if glooPluginConfig.RouteTableSelector == nil {
 		return nil, fmt.Errorf("routeTable selector is required")
@@ -222,6 +230,8 @@ func (r *RpcPlugin) getRouteTables(ctx context.Context, rollout *v1alpha1.Rollou
 	return matched, nil
 }
 
+// matchRoutes matches the routes within the RouteTable based on the provided route selectors in the plugin config from the Rollout CR.
+// 
 func (g *GlooMatchedRouteTable) matchRoutes(logCtx *logrus.Entry, rollout *v1alpha1.Rollout, trafficConfig *GlooPlatformAPITrafficRouting) error {
 	if g.RouteTable == nil {
 		return fmt.Errorf("matchRoutes called for nil RouteTable")
@@ -288,11 +298,23 @@ func (g *GlooMatchedRouteTable) matchRoutes(logCtx *logrus.Entry, rollout *v1alp
 			}
 		}
 
+		if canary != nil {
+			if !mapsEqual(canary.Subset, trafficConfig.CanarySubsetSelector) {
+				logCtx.Debugf("skipping route %s.%s because canary subset does not match specified canary subset selector ", g.RouteTable.Name, httpRoute.Name)
+				continue
+			}
+		}
+
 		if stable != nil {
+			if !mapsEqual(stable.Subset, trafficConfig.StableSubsetSelector) {
+				logCtx.Debugf("skipping route %s.%s because stable subset does not match specified stable subset selector", g.RouteTable.Name, httpRoute.Name)
+				continue
+			}
 			dest := &GlooMatchedHttpRoutes{
 				HttpRoute: httpRoute,
 				Destinations: &GlooDestinations{
 					StableOrActiveDestination:  stable,
+					// Canary can be nil here, we will create it later
 					CanaryOrPreviewDestination: canary,
 				},
 			}
@@ -302,4 +324,16 @@ func (g *GlooMatchedRouteTable) matchRoutes(logCtx *logrus.Entry, rollout *v1alp
 	} // end range httpRoutes
 
 	return nil
+}
+
+func mapsEqual(m1, m2 map[string]string) bool {
+	if len(m1) != len(m2) {
+			return false
+	}
+	for k, v1 := range m1 {
+			if v2, ok := m2[k]; !ok || v1 != v2 {
+					return false
+			}
+	}
+	return true
 }

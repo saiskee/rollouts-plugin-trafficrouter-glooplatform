@@ -25,7 +25,7 @@ func (r *RpcPlugin) handleCanary(ctx context.Context, rollout *v1alpha1.Rollout,
 				matchedHttpRoute.Destinations.StableOrActiveDestination.Weight = uint32(remainingWeight)
 
 				if matchedHttpRoute.Destinations.CanaryOrPreviewDestination == nil {
-					newDest, err := r.newCanaryDest(matchedHttpRoute.Destinations.StableOrActiveDestination, rollout)
+					newDest, err := r.newCanaryDest(matchedHttpRoute.Destinations.StableOrActiveDestination, rollout, glooPluginConfig)
 					if err != nil {
 						return pluginTypes.RpcError{
 							ErrorString: err.Error(),
@@ -46,6 +46,7 @@ func (r *RpcPlugin) handleCanary(ctx context.Context, rollout *v1alpha1.Rollout,
 					ErrorString: fmt.Sprintf("failed to patch RouteTable: %s", err),
 				}
 			}
+			// todo - wait till applied changes have taken effect by monitoring the status of the route table (observed generation)
 			r.LogCtx.Debugf("patched route table %s.%s", rt.RouteTable.Namespace, rt.RouteTable.Name)
 		}
 	}
@@ -53,8 +54,9 @@ func (r *RpcPlugin) handleCanary(ctx context.Context, rollout *v1alpha1.Rollout,
 	return pluginTypes.RpcError{}
 }
 
-func (r *RpcPlugin) newCanaryDest(stableDest *solov2.DestinationReference, rollout *v1alpha1.Rollout) (*solov2.DestinationReference, error) {
+func (r *RpcPlugin) newCanaryDest(stableDest *solov2.DestinationReference, rollout *v1alpha1.Rollout, tc *GlooPlatformAPITrafficRouting) (*solov2.DestinationReference, error) {
 	newDest := stableDest.Clone().(*solov2.DestinationReference)
 	newDest.GetRef().Name = rollout.Spec.Strategy.Canary.CanaryService
+	newDest.Subset = tc.CanarySubsetSelector
 	return newDest, nil
 }

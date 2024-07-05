@@ -52,5 +52,23 @@ spec:
           namespace: gloo-rollouts-demo
         port:
           number: 8080
-        kind: SERVICE
-
+        subset: 
+          version: v1
+        kind: VIRTUAL_DESTINATION
+   - name: demo
+    matchers:
+      - uri:
+          prefix: /demo
+    labels:
+      route: demo
+    forwardTo:
+      pathRewrite: /
+      destinations:
+      - ref:
+          name: canary
+          namespace: gloo-rollouts-demo
+        port:
+          number: 8080
+        subset: 
+          version: v2
+        kind: VIRTUAL_DESTINATION
